@@ -1,0 +1,17 @@
+{
+  "name": "chat-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "chat-test": "file:",
+    "express": "^5.1.0",
+    "ws": "^8.18.1"
+  }
+}
