@@ -1,47 +1,59 @@
 const express = require("express");
+const http = require("http");
 const WebSocket = require("ws");
+const PORT = process.env.PORT || 3001;
 
 const app = express();
-const server = require("http").createServer(app);
+const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const port = process.env.port || 3000;
 
-let users = {}; // Store active connections
+// Map to hold connected users: { userId: [ws1, ws2, ...] }
+const users = new Map();
 
-wss.on("connection", (ws, req) => {
-    ws.on("message", (message) => {
-        let data;
-        try {
-            data = JSON.parse(message);
-        } catch (e) {
-            console.error("Invalid JSON", e);
+wss.on("connection", (ws) => {
+    let userId = null;
+
+    ws.on("message", (data) => {
+        const msg = JSON.parse(data);
+
+        // 1️⃣ On connect: register user
+        if (msg.type === "register") {
+            userId = msg.userId;
+
+            if (!users.has(userId)) users.set(userId, []);
+            users.get(userId).push(ws);
+
+            console.log(`✅ ${userId} connected`);
             return;
         }
 
-        const { type, sender, receiver, content } = data;
+        // 2️⃣ On message: send to recipient
+        if (msg.type === "private_message") {
+            const { to, message } = msg;
+            const receivers = users.get(to);
 
-        if (type === "register") {
-            users[sender] = ws;
-            ws.send(JSON.stringify({ type: "ack", message: "Registered successfully" }));
-        } 
-        else if (type === "message") {
-            if (users[receiver]) {
-                users[receiver].send(JSON.stringify({ sender, content }));
-                ws.send(JSON.stringify({ type: "ack", message: "Msg Sent successfully" }))
-            } else {
-                ws.send(JSON.stringify({ type: "error", message: "User offline" }));
+            if (receivers) {
+                receivers.forEach(socket => {
+                    socket.send(JSON.stringify({
+                        type: "private_message",
+                        from: userId,
+                        message,
+                    }));
+                });
             }
         }
     });
 
+    // 3️⃣ Clean up on disconnect
     ws.on("close", () => {
-        for (let user in users) {
-            if (users[user] === ws) {
-                delete users[user];
-                break;
-            }
+        if (userId && users.has(userId)) {
+            users.set(userId, users.get(userId).filter(sock => sock !== ws));
+            if (users.get(userId).length === 0) users.delete(userId);
+            console.log(`❌ ${userId} disconnected`);
         }
     });
 });
 
-server.listen(port, () => console.log("Server running on port 3000"));
+server.listen(PORT, () => {
+    console.log(`WebSocket server running on port ${PORT}`);
+});
