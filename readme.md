@@ -23,13 +23,6 @@ PulseMate WebSocket Server provides the real-time communication backbone for the
 
 ---
 
-## 📦 Prerequisites
-
-- Node.js (v14.x or higher)  
-- npm (v6.x or higher)  
-
----
-
 ## 🚀 Installation
 
 ```bash
