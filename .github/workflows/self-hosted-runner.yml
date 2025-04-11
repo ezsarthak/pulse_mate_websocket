@@ -23,4 +23,4 @@ jobs:
 
     - name: Deploy
       run:
-          cd ~/actions-runner/_work/pulse_mate_websocket && git pull && npm install && pm2 restart index.js
+          cd ~/actions-runner/_work/pulse_mate_websocket/pulse_mate_websocket && git pull && npm install && pm2 restart index.js
