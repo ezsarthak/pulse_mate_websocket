@@ -1,0 +1,26 @@
+name: Node.js CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '23'
+
+    - name: Deploy
+      run:
+          cd ~/actions-runner/_work/pulse_mate_websocket && git pull && npm install && pm2 restart index.js
